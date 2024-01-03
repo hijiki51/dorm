@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/cockroachdb/errors"
 )
 
 const batchGetItemsMaxSize = 100
@@ -263,7 +262,7 @@ func batchGetItems[V ItemType](ctx context.Context, db *dynamodb.Client, expr ex
 	}
 
 	if len(idxs) > 100 {
-		return nil, errors.Wrap(ErrInternalServerError, "Too Many Items")
+		return nil, ErrMaxGetItemExceeded
 	}
 
 	var keys []map[string]types.AttributeValue
