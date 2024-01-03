@@ -7,7 +7,7 @@ const testItemTableName = "test-item"
 var testItemIndexName = struct {
 	GSI string
 }{
-	GSI: "grobal-secondary-index",
+	GSI: "global-secondary-index",
 }
 
 // testItemColumns is helper for expression
