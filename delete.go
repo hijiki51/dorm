@@ -11,7 +11,7 @@ import (
 
 const maxBatchDeleteSize = 25
 
-// DeleteItem アイテムを削除する
+// DeleteItem deletes an item.
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.DeleteItem
 func DeleteItem[V ItemType](ctx context.Context, db *dynamodb.Client, idx PrimaryIndex, expr expression.Expression) error {
 
@@ -35,17 +35,17 @@ func DeleteItem[V ItemType](ctx context.Context, db *dynamodb.Client, idx Primar
 
 }
 
-// BatchDeleteItem 一括でアイテムを追加する
+// BatchDeleteItem adds items in bulk.
 //
-// AWSの仕様上は複数テーブルにアクセスできるがここでは単一テーブルに制限している。
-// また、削除と作成も混合して実行できるが、単一操作にに制限している。
+// According to AWS specifications, it is possible to access multiple tables, but here we are limiting it to a single table.
+// Also, deletion and creation can be mixed, but we are limiting it to a single operation.
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.BatchWriteItem
-// https://docs.aws.amazon.com/ja_jp/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
+// https://docs.aws.amazon.com/en_us/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
 func BatchDeleteItem[V ItemType](ctx context.Context, db *dynamodb.Client, keys []PrimaryIndex) error {
 	if len(keys) == 0 {
 		return nil
 	}
-	// 一回のBatchで操作できる数は25個まで
+	// The number of operations that can be performed in a single batch is up to 25.
 	errs := splitThread(ctx, db, NopExpression, maxBatchPutItemSize, batchDeleteItem[V], keys)
 
 	if len(errs) > 0 {
@@ -57,7 +57,7 @@ func BatchDeleteItem[V ItemType](ctx context.Context, db *dynamodb.Client, keys 
 }
 
 func batchDeleteItem[V ItemType](ctx context.Context, db *dynamodb.Client, expr expression.Expression, keys []PrimaryIndex) error {
-	// 一回のBatchで操作できる数は25個まで
+	// The number of operations that can be performed in a single batch is up to 25.
 
 	writeReqs := make([]types.WriteRequest, len(keys))
 	for i, item := range keys {
