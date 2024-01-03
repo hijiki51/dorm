@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-// UpdateItem アイテムを更新する
+// UpdateItem Update an item
 //
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.UpdateItem
 // https://docs.aws.amazon.com/ja_jp/amazondynamodb/latest/APIReference/API_UpdateItem.html

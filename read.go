@@ -13,7 +13,7 @@ import (
 
 const batchGetItemsMaxSize = 100
 
-// QueryOptions Queryのオプションパラメータ
+// QueryOptions Query options for Query function
 type QueryOptions struct {
 	IndexName         *string
 	ExclusiveStartKey map[string]types.AttributeValue
@@ -22,7 +22,7 @@ type QueryOptions struct {
 	Reverse bool
 }
 
-// ScanOptions Scanのオプションパラメータ
+// ScanOptions Scan options for Scan function
 type ScanOptions struct {
 	IndexName         *string
 	ExclusiveStartKey map[string]types.AttributeValue
@@ -33,10 +33,10 @@ type ScanOptions struct {
 type ScanOptionFunc func(*ScanOptions)
 type QueryOptionFunc func(*QueryOptions)
 
-// GetItem 指定されたアイテムを取得する。
+// GetItem retrieves the specified item.
 //
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.GetItem
-// https://docs.aws.amazon.com/ja_jp/amazondynamodb/latest/APIReference/API_GetItem.html
+// https://docs.aws.amazon.com/en_us/amazondynamodb/latest/APIReference/API_GetItem.html
 func GetItem[V ItemType](ctx context.Context, db *dynamodb.Client, idx PrimaryIndex, expr expression.Expression) (*V, error) {
 
 	key, err := buildIndex(idx)
@@ -71,12 +71,12 @@ func GetItem[V ItemType](ctx context.Context, db *dynamodb.Client, idx PrimaryIn
 
 }
 
-// BatchGetItems 複数アイテムを一括取得する。
+// BatchGetItems retrieves multiple items in a batch.
 //
-// AWSの仕様上は複数テーブルにアクセスできるがここでは単一テーブルに制限している。
-// 一度にリクエストできる上限は100件。
+// Although AWS allows accessing multiple tables, this function is limited to a single table.
+// The maximum number of items that can be requested at once is 100.
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.BatchGetItem
-// https://docs.aws.amazon.com/ja_jp/amazondynamodb/latest/APIReference/API_BatchGetItem.html
+// https://docs.aws.amazon.com/en_us/amazondynamodb/latest/APIReference/API_BatchGetItem.html
 func BatchGetItems[V ItemType](ctx context.Context, db *dynamodb.Client, idxs []PrimaryIndex, expr expression.Expression) ([]V, error) {
 	res, errs := splitThreadWithReturnValue(ctx, db, expr, batchGetItemsMaxSize, batchGetItems[V], idxs)
 
@@ -87,11 +87,11 @@ func BatchGetItems[V ItemType](ctx context.Context, db *dynamodb.Client, idxs []
 	return res, nil
 }
 
-// Query クエリ実行
+// Query executes a query.
 //
-// 注意: AWSの仕様上 KeyCondition => Limit => FilterExpression の順で実行される。
+// Note: According to AWS specifications, KeyCondition => Limit => FilterExpression are executed in order.
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.Query
-// https://docs.aws.amazon.com/ja_jp/amazondynamodb/latest/APIReference/API_Query.html
+// https://docs.aws.amazon.com/en_us/amazondynamodb/latest/APIReference/API_Query.html
 func Query[V ItemType](ctx context.Context, db *dynamodb.Client, expr expression.Expression, opts ...QueryOptionFunc) ([]V, map[string]types.AttributeValue, error) {
 
 	o := QueryOptions{}
@@ -134,11 +134,11 @@ func Query[V ItemType](ctx context.Context, db *dynamodb.Client, expr expression
 
 }
 
-// QueryAll クエリ実行(全件取得)
+// QueryAll executes a query to retrieve all items.
 //
-// 注意: AWSの仕様上 KeyCondition => Limit => FilterExpression の順で実行される。
+// Note: According to AWS specifications, KeyCondition => Limit => FilterExpression are executed in order.
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.Query
-// https://docs.aws.amazon.com/ja_jp/amazondynamodb/latest/APIReference/API_Query.html\
+// https://docs.aws.amazon.com/en_us/amazondynamodb/latest/APIReference/API_Query.html
 func QueryAll[V ItemType](ctx context.Context, db *dynamodb.Client, expr expression.Expression, opts ...QueryOptionFunc) ([]V, error) {
 	var resp []V
 
@@ -168,11 +168,11 @@ func QueryAll[V ItemType](ctx context.Context, db *dynamodb.Client, expr express
 	return resp, nil
 }
 
-// Scan テーブルスキャン
+// Scan performs a table scan.
 //
-// 注意: AWSの仕様上 Limit => FilterExpression の順で実行される。
+// Note: According to AWS specifications, Limit => FilterExpression are executed in order.
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.Scan
-// https://docs.aws.amazon.com/ja_jp/amazondynamodb/latest/APIReference/API_Scan.html
+// https://docs.aws.amazon.com/en_us/amazondynamodb/latest/APIReference/API_Scan.html
 func Scan[V ItemType](ctx context.Context, db *dynamodb.Client, expr expression.Expression, opts ...ScanOptionFunc) ([]V, map[string]types.AttributeValue, error) {
 	o := ScanOptions{}
 
@@ -211,11 +211,11 @@ func Scan[V ItemType](ctx context.Context, db *dynamodb.Client, expr expression.
 	return vals, output.LastEvaluatedKey, nil
 }
 
-// ScanAll テーブルスキャン(全件取得)
+// ScanAll performs a table scan to retrieve all items.
 //
-// 注意: AWSの仕様上 Limit => FilterExpression の順で実行される。
+// Note: According to AWS specifications, Limit => FilterExpression are executed in order.
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.Scan
-// https://docs.aws.amazon.com/ja_jp/amazondynamodb/latest/APIReference/API_Scan.html
+// https://docs.aws.amazon.com/en_us/amazondynamodb/latest/APIReference/API_Scan.html
 func ScanAll[V ItemType](ctx context.Context, db *dynamodb.Client, expr expression.Expression, opts ...ScanOptionFunc) ([]V, error) {
 	var resp []V
 

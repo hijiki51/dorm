@@ -11,10 +11,10 @@ import (
 
 const maxBatchPutItemSize = 25
 
-// PutItem アイテムが存在しなかった場合は追加、存在した場合は置換する
+// PutItem adds an item if it doesn't exist, or replaces it if it does.
 //
-// ゼロ値が設定されていた場合それに書き換えられてしまうので注意。
-// 更新したい場合はUpdateItemを使うこと。
+// Be careful, as it will overwrite with zero values if set.
+// Use UpdateItem if you want to update.
 //
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.PutItem
 // https://docs.aws.amazon.com/ja_jp/amazondynamodb/latest/APIReference/API_PutItem.html
@@ -45,10 +45,10 @@ func PutItem[V ItemType](ctx context.Context, db *dynamodb.Client, item V, expr 
 
 }
 
-// BatchPutItem 一括でアイテムを追加する
+// BatchPutItem adds multiple items in bulk.
 //
-// AWSの仕様上は複数テーブルにアクセスできるがここでは単一テーブルに制限している。
-// また、削除と作成も混合して実行できるが、単一操作にに制限している。
+// It is limited to a single table, although AWS allows accessing multiple tables.
+// Also, it can perform a mix of deletion and creation, but here it is restricted to a single operation.
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.BatchWriteItem
 // https://docs.aws.amazon.com/ja_jp/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
 func BatchPutItem[V ItemType](ctx context.Context, db *dynamodb.Client, items []V) error {
@@ -56,7 +56,7 @@ func BatchPutItem[V ItemType](ctx context.Context, db *dynamodb.Client, items []
 	if len(items) == 0 {
 		return nil
 	}
-	// 一回のBatchで操作できる数は25個まで
+	// The number of operations that can be performed in a single batch is up to 25
 	errs := splitThread(ctx, db, NopExpression, maxBatchPutItemSize, batchPutItem[V], items)
 
 	if len(errs) > 0 {

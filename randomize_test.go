@@ -9,8 +9,7 @@ import (
 	"reflect"
 )
 
-// RandomizeDDBStruct Strの各パラメーターはprimitiveかつnot pointerであること(ただしSliceはOK)
-
+// RandomizeDDBStruct checks if the input struct is a pointer and a struct, then iterates through its fields and randomizes them.
 func RandomizeDDBStruct(str interface{}) error {
 	// Check if it's pointer
 	value := reflect.ValueOf(str)
