@@ -23,7 +23,7 @@ var UniqueLimitQueryOptFunc = func(qo *QueryOptions) {
 // optfnsによって指定するフィールドを調整できる。
 //
 // optFns : 展開するフィールドを指定する関数。trueを返すとき除外する。
-func ProjectionAll[T ItemType](optFns ...func(name string) bool) expression.ProjectionBuilder {
+func ProjectionAll[T ItemType](skipper ...func(name string) bool) expression.ProjectionBuilder {
 	// tagを検索するのに実体が必要なので作成
 	str := *new(T)
 
@@ -39,7 +39,7 @@ func ProjectionAll[T ItemType](optFns ...func(name string) bool) expression.Proj
 		name := f.Tag.Get(structTag)
 		// tagが設定されており、かつ `-` でない場合
 		if name != "" && name != ignoreStructTag {
-			if !isSkip(optFns, name) {
+			if !isSkip(skipper, name) {
 				// tagの値をNameBuilderに変換
 				names = append(names, expression.Name(name))
 			}
@@ -57,7 +57,7 @@ func ProjectionAll[T ItemType](optFns ...func(name string) bool) expression.Proj
 // optfnsによって指定するフィールドを調整できる。
 //
 // optFns : 展開するフィールドを指定する関数。trueを返すとき除外する。
-func AttributeSetAll[T ItemType](str T, optFns ...func(name string) bool) expression.UpdateBuilder {
+func AttributeSetAll[T ItemType](str T, skipper ...func(name string) bool) expression.UpdateBuilder {
 	// 構造体の型情報を取得
 	rtStr := reflect.TypeOf(str)
 	res := expression.UpdateBuilder{}
@@ -69,7 +69,7 @@ func AttributeSetAll[T ItemType](str T, optFns ...func(name string) bool) expres
 		name := f.Tag.Get(structTag)
 		// tagが設定されており、かつ `-` でない場合
 		if name != "" && name != ignoreStructTag {
-			if !isSkip(optFns, name) {
+			if !isSkip(skipper, name) {
 				// 構造体の指定Fieldの値を取得
 				val := reflect.ValueOf(str).Field(i)
 				// tagをkey,valをinterface{}に変換しつつUpdateBuilderに追加
