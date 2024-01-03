@@ -2,8 +2,9 @@ package dorm
 
 import (
 	"context"
-	"errors"
 	"testing"
+
+	"github.com/cockroachdb/errors"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"

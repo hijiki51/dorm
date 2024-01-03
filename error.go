@@ -1,6 +1,6 @@
 package dorm
 
-import "errors"
+import "github.com/cockroachdb/errors"
 
 // nolint
 var (

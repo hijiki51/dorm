@@ -1,10 +1,11 @@
 package dorm
 
 import (
-	"errors"
 	"net"
 	"net/url"
 	"strings"
+
+	"github.com/cockroachdb/errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 )
