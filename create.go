@@ -17,7 +17,7 @@ const maxBatchPutItemSize = 25
 // Use UpdateItem if you want to update.
 //
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.PutItem
-// https://docs.aws.amazon.com/ja_jp/amazondynamodb/latest/APIReference/API_PutItem.html
+// https://docs.aws.amazon.com/en_us/amazondynamodb/latest/APIReference/API_PutItem.html
 func PutItem[V ItemType](ctx context.Context, db *dynamodb.Client, item V, expr expression.Expression) error {
 
 	av, err := attributevalue.MarshalMap(item)
@@ -50,7 +50,7 @@ func PutItem[V ItemType](ctx context.Context, db *dynamodb.Client, item V, expr 
 // It is limited to a single table, although AWS allows accessing multiple tables.
 // Also, it can perform a mix of deletion and creation, but here it is restricted to a single operation.
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.BatchWriteItem
-// https://docs.aws.amazon.com/ja_jp/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
+// https://docs.aws.amazon.com/en_us/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
 func BatchPutItem[V ItemType](ctx context.Context, db *dynamodb.Client, items []V) error {
 
 	if len(items) == 0 {

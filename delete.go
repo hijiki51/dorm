@@ -40,7 +40,7 @@ func DeleteItem[V ItemType](ctx context.Context, db *dynamodb.Client, idx Primar
 // According to AWS specifications, it is possible to access multiple tables, but here we are limiting it to a single table.
 // Also, deletion and creation can be mixed, but we are limiting it to a single operation.
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.BatchWriteItem
-// https://docs.aws.amazon.com/ja_jp/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
+// https://docs.aws.amazon.com/en_us/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
 func BatchDeleteItem[V ItemType](ctx context.Context, db *dynamodb.Client, keys []PrimaryIndex) error {
 	if len(keys) == 0 {
 		return nil
