@@ -13,6 +13,7 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/stretchr/testify v1.8.4
+	golang.org/x/sync v0.1.0
 )
 
 require (

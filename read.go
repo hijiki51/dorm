@@ -2,7 +2,6 @@ package dorm
 
 import (
 	"context"
-	"math"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -84,18 +83,16 @@ func GetItem[V ItemType](ctx context.Context, db *dynamodb.Client, idx PrimaryIn
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.BatchGetItem
 // https://docs.aws.amazon.com/ja_jp/amazondynamodb/latest/APIReference/API_BatchGetItem.html
 func BatchGetItems[V ItemType](ctx context.Context, db *dynamodb.Client, idxs []PrimaryIndex, expr expression.Expression, opts ...BatchGetItemOptionFunc) ([]V, error) {
-	o := BatchGetItemOptions{
-		Concurrency: math.MaxInt,
-	}
+	o := BatchGetItemOptions{}
 
 	for _, f := range opts {
 		f(&o)
 	}
 
-	res, errs := splitThreadWithReturnValue(ctx, db, expr, batchGetItemsMaxSize, o.Concurrency, batchGetItems[V], idxs)
+	res, err := splitThreadWithReturnValue(ctx, db, expr, batchGetItemsMaxSize, o.Concurrency, batchGetItems[V], idxs)
 
-	if len(errs) > 0 {
-		return nil, errors.Join(errs...)
+	if err != nil {
+		return nil, err
 	}
 
 	return res, nil

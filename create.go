@@ -72,10 +72,10 @@ func BatchPutItem[V ItemType](ctx context.Context, db *dynamodb.Client, items []
 		return nil
 	}
 	// 一回のBatchで操作できる数は25個まで
-	errs := splitThread(ctx, db, NopExpression, maxBatchPutItemSize, o.Concurrency, batchPutItem[V], items)
+	err := splitThread(ctx, db, NopExpression, maxBatchPutItemSize, o.Concurrency, batchPutItem[V], items)
 
-	if len(errs) > 0 {
-		return errs[0]
+	if err != nil {
+		return err
 	}
 
 	return nil

@@ -211,7 +211,7 @@ func testtestItemBatchGetItems(t *testing.T) {
 				args.expr, err = expression.NewBuilder().WithProjection(proj).Build()
 				assert.NoError(t, err)
 
-				return nil
+				return []testItem{}
 			},
 			opts: []cmp.Option{
 				cmpopts.SortSlices(func(x, y testItem) bool {
@@ -219,7 +219,7 @@ func testtestItemBatchGetItems(t *testing.T) {
 				}),
 				cmpopts.IgnoreUnexported(testItem{}),
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 	}
 	for name, tt := range tests {
@@ -471,7 +471,7 @@ func testtestItemQuery(t *testing.T) {
 				args.expr, err = expression.NewBuilder().WithProjection(proj).WithKeyCondition(keycond).Build()
 				assert.NoError(t, err)
 
-				return nil, nil
+				return []testItem{}, nil
 			},
 			opts: []cmp.Option{
 				cmpopts.SortSlices(func(x, y testItem) bool {
@@ -480,7 +480,7 @@ func testtestItemQuery(t *testing.T) {
 
 				cmpopts.IgnoreUnexported(testItem{}),
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 	}
 	for name, tt := range tests {
@@ -595,9 +595,9 @@ func testtestItemQueryAll(t *testing.T) {
 					},
 				}
 				assert.NoError(t, err)
-				return nil
+				return []testItem{}
 			},
-			wantErr: true,
+			wantErr: false,
 			opts: []cmp.Option{
 				cmpopts.SortSlices(func(x, y testItem) bool {
 					return x.HashKey < y.HashKey
@@ -772,7 +772,7 @@ func testtestItemQueryAll(t *testing.T) {
 				args.expr, err = expression.NewBuilder().WithProjection(proj).WithKeyCondition(keycond).Build()
 				assert.NoError(t, err)
 
-				return nil
+				return []testItem{}
 			},
 			opts: []cmp.Option{
 				cmpopts.SortSlices(func(x, y testItem) bool {
@@ -781,7 +781,7 @@ func testtestItemQueryAll(t *testing.T) {
 
 				cmpopts.IgnoreUnexported(testItem{}),
 			},
-			wantErr: true,
+			wantErr: false,
 		},
 	}
 	for name, tt := range tests {

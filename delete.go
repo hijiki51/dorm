@@ -62,10 +62,10 @@ func BatchDeleteItem[V ItemType](ctx context.Context, db *dynamodb.Client, keys 
 		return nil
 	}
 	// 一回のBatchで操作できる数は25個まで
-	errs := splitThread(ctx, db, NopExpression, maxBatchPutItemSize, o.Concurrency, batchDeleteItem[V], keys)
+	err := splitThread(ctx, db, NopExpression, maxBatchPutItemSize, o.Concurrency, batchDeleteItem[V], keys)
 
-	if len(errs) > 0 {
-		return errs[0]
+	if err != nil {
+		return err
 	}
 
 	return nil
