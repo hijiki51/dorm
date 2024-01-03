@@ -2,6 +2,7 @@ package dorm
 
 import (
 	"context"
+	"math"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
@@ -10,6 +11,12 @@ import (
 )
 
 const maxBatchDeleteSize = 25
+
+type BatchDeleteItemOptions struct {
+	Concurrency int
+}
+
+type BatchDeleteOptionFunc func(*BatchDeleteItemOptions)
 
 // DeleteItem アイテムを削除する
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.DeleteItem
@@ -41,12 +48,21 @@ func DeleteItem[V ItemType](ctx context.Context, db *dynamodb.Client, idx Primar
 // また、削除と作成も混合して実行できるが、単一操作にに制限している。
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.BatchWriteItem
 // https://docs.aws.amazon.com/ja_jp/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
-func BatchDeleteItem[V ItemType](ctx context.Context, db *dynamodb.Client, keys []PrimaryIndex) error {
+func BatchDeleteItem[V ItemType](ctx context.Context, db *dynamodb.Client, keys []PrimaryIndex, opts ...BatchDeleteOptionFunc) error {
+
+	o := BatchDeleteItemOptions{
+		Concurrency: math.MaxInt,
+	}
+
+	for _, f := range opts {
+		f(&o)
+	}
+
 	if len(keys) == 0 {
 		return nil
 	}
 	// 一回のBatchで操作できる数は25個まで
-	errs := splitThread(ctx, db, NopExpression, maxBatchPutItemSize, batchDeleteItem[V], keys)
+	errs := splitThread(ctx, db, NopExpression, maxBatchPutItemSize, o.Concurrency, batchDeleteItem[V], keys)
 
 	if len(errs) > 0 {
 		return errs[0]
@@ -84,5 +100,4 @@ func batchDeleteItem[V ItemType](ctx context.Context, db *dynamodb.Client, expr 
 	}
 
 	return nil
-
 }

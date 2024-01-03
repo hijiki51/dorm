@@ -2,6 +2,7 @@ package dorm
 
 import (
 	"context"
+	"math"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
@@ -10,6 +11,12 @@ import (
 )
 
 const maxBatchPutItemSize = 25
+
+type BatchPutItemOptions struct {
+	Concurrency int
+}
+
+type BatchPutOptionFunc func(*BatchPutItemOptions)
 
 // PutItem アイテムが存在しなかった場合は追加、存在した場合は置換する
 //
@@ -51,13 +58,21 @@ func PutItem[V ItemType](ctx context.Context, db *dynamodb.Client, item V, expr 
 // また、削除と作成も混合して実行できるが、単一操作にに制限している。
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.BatchWriteItem
 // https://docs.aws.amazon.com/ja_jp/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
-func BatchPutItem[V ItemType](ctx context.Context, db *dynamodb.Client, items []V) error {
+func BatchPutItem[V ItemType](ctx context.Context, db *dynamodb.Client, items []V, opts ...BatchPutOptionFunc) error {
+
+	o := BatchPutItemOptions{
+		Concurrency: math.MaxInt,
+	}
+
+	for _, f := range opts {
+		f(&o)
+	}
 
 	if len(items) == 0 {
 		return nil
 	}
 	// 一回のBatchで操作できる数は25個まで
-	errs := splitThread(ctx, db, NopExpression, maxBatchPutItemSize, batchPutItem[V], items)
+	errs := splitThread(ctx, db, NopExpression, maxBatchPutItemSize, o.Concurrency, batchPutItem[V], items)
 
 	if len(errs) > 0 {
 		return errs[0]

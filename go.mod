@@ -10,7 +10,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression v1.6.13
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.26.7
 	github.com/cockroachdb/errors v1.11.1
-	github.com/friendsofgo/errors v0.9.2
 	github.com/google/go-cmp v0.5.9
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/stretchr/testify v1.8.4
@@ -64,7 +63,6 @@ require (
 	golang.org/x/sys v0.7.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
-	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

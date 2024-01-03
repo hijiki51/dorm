@@ -2,13 +2,14 @@ package dorm
 
 import (
 	"context"
+	"math"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/friendsofgo/errors"
+	"github.com/cockroachdb/errors"
 )
 
 const batchGetItemsMaxSize = 100
@@ -30,8 +31,13 @@ type ScanOptions struct {
 	Limit *int32
 }
 
+type BatchGetItemOptions struct {
+	Concurrency int
+}
+
 type ScanOptionFunc func(*ScanOptions)
 type QueryOptionFunc func(*QueryOptions)
+type BatchGetItemOptionFunc func(*BatchGetItemOptions)
 
 // GetItem 指定されたアイテムを取得する。
 //
@@ -57,7 +63,7 @@ func GetItem[V ItemType](ctx context.Context, db *dynamodb.Client, idx PrimaryIn
 		return nil, err
 	}
 
-	if err = checkEmptyResp(output.Item); err != nil {
+	if checkEmptyResp(output.Item) {
 		return nil, ErrItemNotFound
 	}
 
@@ -77,11 +83,19 @@ func GetItem[V ItemType](ctx context.Context, db *dynamodb.Client, idx PrimaryIn
 // 一度にリクエストできる上限は100件。
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.BatchGetItem
 // https://docs.aws.amazon.com/ja_jp/amazondynamodb/latest/APIReference/API_BatchGetItem.html
-func BatchGetItems[V ItemType](ctx context.Context, db *dynamodb.Client, idxs []PrimaryIndex, expr expression.Expression) ([]V, error) {
-	res, errs := splitThreadWithReturnValue(ctx, db, expr, batchGetItemsMaxSize, batchGetItems[V], idxs)
+func BatchGetItems[V ItemType](ctx context.Context, db *dynamodb.Client, idxs []PrimaryIndex, expr expression.Expression, opts ...BatchGetItemOptionFunc) ([]V, error) {
+	o := BatchGetItemOptions{
+		Concurrency: math.MaxInt,
+	}
+
+	for _, f := range opts {
+		f(&o)
+	}
+
+	res, errs := splitThreadWithReturnValue(ctx, db, expr, batchGetItemsMaxSize, o.Concurrency, batchGetItems[V], idxs)
 
 	if len(errs) > 0 {
-		return nil, errs[0]
+		return nil, errors.Join(errs...)
 	}
 
 	return res, nil
@@ -120,8 +134,8 @@ func Query[V ItemType](ctx context.Context, db *dynamodb.Client, expr expression
 		return nil, nil, err
 	}
 
-	if err = checkEmptyRespList(output.Items); err != nil {
-		return nil, nil, ErrItemNotFound
+	if checkEmptyRespList(output.Items) {
+		return []V{}, nil, nil
 	}
 
 	var vals []V
@@ -162,7 +176,7 @@ func QueryAll[V ItemType](ctx context.Context, db *dynamodb.Client, expr express
 	}
 
 	if len(resp) == 0 {
-		return nil, ErrItemNotFound
+		return []V{}, nil
 	}
 
 	return resp, nil
@@ -198,8 +212,8 @@ func Scan[V ItemType](ctx context.Context, db *dynamodb.Client, expr expression.
 		return nil, nil, err
 	}
 
-	if err = checkEmptyRespList(output.Items); err != nil {
-		return nil, nil, ErrItemNotFound
+	if checkEmptyRespList(output.Items) {
+		return []V{}, nil, nil
 	}
 
 	var vals []V
@@ -279,8 +293,8 @@ func batchGetItems[V ItemType](ctx context.Context, db *dynamodb.Client, expr ex
 		return nil, err
 	}
 
-	if err = checkEmptyRespList(output.Responses[*getFullTableName[V]()]); err != nil {
-		return nil, ErrItemNotFound
+	if checkEmptyRespList(output.Responses[*getFullTableName[V]()]) {
+		return []V{}, nil
 	}
 
 	var res []V

@@ -97,6 +97,7 @@ func splitThread[ARG any](
 	db *dynamodb.Client,
 	expr expression.Expression,
 	size int,
+	concurrency int,
 	fun func(context.Context, *dynamodb.Client, expression.Expression, []ARG) error,
 	args []ARG,
 ) []error {
@@ -141,6 +142,7 @@ func splitThreadWithReturnValue[V ItemType, ARG any](
 	db *dynamodb.Client,
 	expr expression.Expression,
 	size int,
+	concurrency int,
 	fun func(context.Context, *dynamodb.Client, expression.Expression, []ARG) ([]V, error),
 	args []ARG,
 ) ([]V, []error) {
