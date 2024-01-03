@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (c) 2020 Volatile Technologies Inc.
+// https://github.com/volatiletech/randomize
 package dorm
 
 import (
@@ -7,7 +10,7 @@ import (
 )
 
 // RandomizeDDBStruct Strの各パラメーターはprimitiveかつnot pointerであること(ただしSliceはOK)
-// ref: https://github.com/volatiletech/randomize
+
 func RandomizeDDBStruct(str interface{}) error {
 	// Check if it's pointer
 	value := reflect.ValueOf(str)
