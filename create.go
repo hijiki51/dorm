@@ -2,7 +2,6 @@ package dorm
 
 import (
 	"context"
-	"math"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
@@ -60,9 +59,7 @@ func PutItem[V ItemType](ctx context.Context, db *dynamodb.Client, item V, expr 
 // https://docs.aws.amazon.com/ja_jp/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
 func BatchPutItem[V ItemType](ctx context.Context, db *dynamodb.Client, items []V, opts ...BatchPutOptionFunc) error {
 
-	o := BatchPutItemOptions{
-		Concurrency: math.MaxInt,
-	}
+	o := BatchPutItemOptions{}
 
 	for _, f := range opts {
 		f(&o)

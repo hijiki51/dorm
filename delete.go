@@ -2,7 +2,6 @@ package dorm
 
 import (
 	"context"
-	"math"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
@@ -50,9 +49,7 @@ func DeleteItem[V ItemType](ctx context.Context, db *dynamodb.Client, idx Primar
 // https://docs.aws.amazon.com/ja_jp/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
 func BatchDeleteItem[V ItemType](ctx context.Context, db *dynamodb.Client, keys []PrimaryIndex, opts ...BatchDeleteOptionFunc) error {
 
-	o := BatchDeleteItemOptions{
-		Concurrency: math.MaxInt,
-	}
+	o := BatchDeleteItemOptions{}
 
 	for _, f := range opts {
 		f(&o)
