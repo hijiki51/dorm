@@ -20,60 +20,58 @@ var UniqueLimitQueryOptFunc = func(qo *QueryOptions) {
 	qo.Limit = aws.Int32(1)
 }
 
-// ProjectionAll 構造体のすべての値を返すProjectionを構築する。
-// optfnsによって指定するフィールドを調整できる。
+// ProjectionAll constructs a ProjectionBuilder that returns all values of a struct, with the ability to adjust the fields specified by optfns.
 //
-// optFns : 展開するフィールドを指定する関数。trueを返すとき除外する。
+// optFns: A function that specifies the fields to be expanded. Exclude when returning true.
 func ProjectionAll[T ItemType](skipper ...func(name string) bool) expression.ProjectionBuilder {
-	// tagを検索するのに実体が必要なので作成
+	// Create the entity to search for tags
 	str := *new(T)
 
-	// 構造体の型情報を取得
+	// Get the type information of the struct
 	rtStr := reflect.TypeOf(str)
 
 	var names []expression.NameBuilder
-	// 構造体の全フィールドを取得するループ
+	// Loop through all fields of the struct
 	for i := 0; i < rtStr.NumField(); i++ {
-		// フィールド情報を取得
+		// Get field information
 		f := rtStr.Field(i)
-		// tag情報を取得
+		// Get tag information
 		name := f.Tag.Get(structTag)
-		// tagが設定されており、かつ `-` でない場合
+		// If the tag is set and not "-", add it
 		if name != "" && name != ignoreStructTag {
 			if !isSkip(skipper, name) {
-				// tagの値をNameBuilderに変換
+				// Convert the value of the tag to NameBuilder
 				names = append(names, expression.Name(name))
 			}
 		} else {
 			continue
 		}
 	}
-	// NameBuilderのSliceをProjectionBuilderに変換
+	// Convert NameBuilder slice to ProjectionBuilder
 	res := expression.NamesList(names[0], names[1:]...)
 
 	return res
 }
 
-// AttributeSetAll 構造体のすべての値をUpdateするUpdateBuilderを構築する。
-// optfnsによって指定するフィールドを調整できる。
+// AttributeSetAll constructs an UpdateBuilder that updates all values of a struct, with the ability to adjust the fields specified by optfns.
 //
-// optFns : 展開するフィールドを指定する関数。trueを返すとき除外する。
+// optFns: A function that specifies the fields to be expanded. Exclude when returning true.
 func AttributeSetAll[T ItemType](str T, skipper ...func(name string) bool) expression.UpdateBuilder {
-	// 構造体の型情報を取得
+	// Get the type information of the struct
 	rtStr := reflect.TypeOf(str)
 	res := expression.UpdateBuilder{}
-	// 構造体の全フィールドを取得するループ
+	// Loop through all fields of the struct
 	for i := 0; i < rtStr.NumField(); i++ {
-		// フィールド情報を取得
+		// Get field information
 		f := rtStr.Field(i)
-		// tag情報を取得
+		// Get tag information
 		name := f.Tag.Get(structTag)
-		// tagが設定されており、かつ `-` でない場合
+		// If the tag is set and not "-", add it
 		if name != "" && name != ignoreStructTag {
 			if !isSkip(skipper, name) {
-				// 構造体の指定Fieldの値を取得
+				// Get the value of the specified field in the struct
 				val := reflect.ValueOf(str).Field(i)
-				// tagをkey,valをinterface{}に変換しつつUpdateBuilderに追加
+				// Add the tag as key and the val as interface{} to the UpdateBuilder
 				res = res.Set(expression.Name(name), expression.Value(val.Interface()))
 			}
 		} else {

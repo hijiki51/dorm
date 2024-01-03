@@ -5,7 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-// index DynamoDBの各Index
+// index represents each index in DynamoDB
 type index interface {
 	isIndex()
 }
@@ -37,7 +37,7 @@ func buildIndex[T IndexType](i T) (map[string]types.AttributeValue, error) {
 	return v, nil
 }
 
-// ConstructStartKeyWithGSI PrimaryIndexとGSIからStartKeyを構築する。
+// ConstructStartKeyWithGSI constructs the StartKey from PrimaryIndex and GSI.
 func ConstructStartKeyWithGSI(p PrimaryIndex, s GlobalSecondaryIndex) (map[string]types.AttributeValue, error) {
 	res, err := buildIndex(p)
 
@@ -45,7 +45,7 @@ func ConstructStartKeyWithGSI(p PrimaryIndex, s GlobalSecondaryIndex) (map[strin
 		return nil, err
 	}
 
-	// Primaryだけだったらそのまま
+	// If only PrimaryIndex is provided, return as is
 	if s == nil {
 		return res, nil
 	}
@@ -56,7 +56,7 @@ func ConstructStartKeyWithGSI(p PrimaryIndex, s GlobalSecondaryIndex) (map[strin
 		return nil, err
 	}
 
-	// PrimaryとSecondaryのキーをマージする
+	// Merge the keys of Primary and Secondary
 	for k, v := range smap {
 		res[k] = v
 	}

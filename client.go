@@ -5,7 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
-// NewClient 新しいDynamoDBのクライアントを作成する
+// NewClient creates a new DynamoDB client.
 func NewClient(cfg aws.Config) *dynamodb.Client {
 	client := dynamodb.NewFromConfig(cfg)
 	return client

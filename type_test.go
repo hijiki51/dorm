@@ -69,7 +69,7 @@ var testItemColumns = struct {
 	BoolSlice:    "bool_slice",
 }
 
-// testItem testItem Tableの構造体
+// testItem testItem Table structure
 type testItem struct {
 	Item         `dynamodbav:"-"`
 	HashKey      string    `dynamodbav:"hash_key"`
@@ -101,13 +101,13 @@ type testItem struct {
 	BoolSlice    []bool    `dynamodbav:"bool_slice"`
 }
 
-// testItemPrimaryIndex testItemテーブルのPrimaryIndex
+// testItemPrimaryIndex PrimaryIndex of testItem table
 type testItemPrimaryIndex struct {
 	PrimaryIndex `dynamodbav:"-"`
 	HashKey      string `dynamodbav:"hash_key"`
 }
 
-// testItemGSI testItemテーブルのGSI
+// testItemGSI GSI of testItem table
 // nolint
 type testItemGSI struct {
 	GlobalSecondaryIndex `dynamodbav:"-"`
