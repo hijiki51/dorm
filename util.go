@@ -4,7 +4,8 @@ import (
 	"context"
 	"math"
 	"reflect"
-	"sync"
+
+	"golang.org/x/sync/errgroup"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
@@ -95,40 +96,30 @@ func splitThread[ARG any](
 	db *dynamodb.Client,
 	expr expression.Expression,
 	size int,
+	concurrency int,
 	fun func(context.Context, *dynamodb.Client, expression.Expression, []ARG) error,
 	args []ARG,
-) []error {
-	mut := sync.Mutex{}
-	wg := sync.WaitGroup{}
-
-	var errs []error
-
+) error {
 	threadnum := (len(args) / size) + 1
-	wg.Add(threadnum)
+	eg, ctx := errgroup.WithContext(ctx)
+	if concurrency > 0 {
+		eg.SetLimit(concurrency)
+	}
 
 	for i := 0; i < threadnum; i++ {
 		start := i * size
-		end := int(math.Min(float64(((i + 1) * size)), float64(len(args))))
+		end := int(math.Min(float64((i+1)*size), float64(len(args))))
 		if start >= end {
-			wg.Done()
 			continue
 		}
-		go func(ctx context.Context, db *dynamodb.Client, expr expression.Expression, args []ARG) {
-			defer wg.Done()
-			err := fun(ctx, db, expr, args)
-			if err != nil {
-				mut.Lock()
-				errs = append(errs, err)
-				mut.Unlock()
-				return
-			}
-		}(ctx, db, expr, args[start:end])
+		subArgs := args[start:end]
+		eg.Go(func() error {
+			return fun(ctx, db, expr, subArgs)
+		})
 	}
 
-	wg.Wait()
-
-	if len(errs) > 0 {
-		return errs
+	if err := eg.Wait(); err != nil {
+		return err
 	}
 
 	return nil
@@ -139,48 +130,36 @@ func splitThreadWithReturnValue[V ItemType, ARG any](
 	db *dynamodb.Client,
 	expr expression.Expression,
 	size int,
+	concurrency int,
 	fun func(context.Context, *dynamodb.Client, expression.Expression, []ARG) ([]V, error),
 	args []ARG,
-) ([]V, []error) {
-	mut := sync.Mutex{}
-	emut := sync.Mutex{}
-	wg := sync.WaitGroup{}
-
-	var errs []error
-
+) ([]V, error) {
 	threadnum := (len(args) / size) + 1
-	wg.Add(threadnum)
+	eg, ctx := errgroup.WithContext(ctx)
+	if concurrency > 0 {
+		eg.SetLimit(concurrency)
+	}
 	res := make([]V, 0, len(args))
 
 	for i := 0; i < threadnum; i++ {
 		start := i * size
 		end := int(math.Min(float64(((i + 1) * size)), float64(len(args))))
 		if start >= end {
-			wg.Done()
 			continue
 		}
-
-		go func(ctx context.Context, db *dynamodb.Client, expr expression.Expression, args []ARG) {
-			defer wg.Done()
-			val, err := fun(ctx, db, expr, args)
+		subArgs := args[start:end]
+		eg.Go(func() error {
+			val, err := fun(ctx, db, expr, subArgs)
 			if err != nil {
-				emut.Lock()
-				errs = append(errs, err)
-				emut.Unlock()
-				return
+				return err
 			}
-
-			mut.Lock()
 			res = append(res, val...)
-			mut.Unlock()
-
-		}(ctx, db, expr, args[start:end])
+			return nil
+		})
 	}
 
-	wg.Wait()
-
-	if len(errs) > 0 {
-		return nil, errs
+	if err := eg.Wait(); err != nil {
+		return nil, err
 	}
 
 	return res, nil

@@ -11,6 +11,12 @@ import (
 
 const maxBatchDeleteSize = 25
 
+type BatchDeleteItemOptions struct {
+	Concurrency int
+}
+
+type BatchDeleteOptionFunc func(*BatchDeleteItemOptions)
+
 // DeleteItem deletes an item.
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.DeleteItem
 func DeleteItem[V ItemType](ctx context.Context, db *dynamodb.Client, idx PrimaryIndex, expr expression.Expression) error {
@@ -41,15 +47,22 @@ func DeleteItem[V ItemType](ctx context.Context, db *dynamodb.Client, idx Primar
 // Also, deletion and creation can be mixed, but we are limiting it to a single operation.
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.BatchWriteItem
 // https://docs.aws.amazon.com/en_us/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
-func BatchDeleteItem[V ItemType](ctx context.Context, db *dynamodb.Client, keys []PrimaryIndex) error {
+func BatchDeleteItem[V ItemType](ctx context.Context, db *dynamodb.Client, keys []PrimaryIndex, opts ...BatchDeleteOptionFunc) error {
+
+	o := BatchDeleteItemOptions{}
+
+	for _, f := range opts {
+		f(&o)
+	}
+
 	if len(keys) == 0 {
 		return nil
 	}
 	// The number of operations that can be performed in a single batch is up to 25.
-	errs := splitThread(ctx, db, NopExpression, maxBatchPutItemSize, batchDeleteItem[V], keys)
+	err := splitThread(ctx, db, NopExpression, maxBatchPutItemSize, o.Concurrency, batchDeleteItem[V], keys)
 
-	if len(errs) > 0 {
-		return errs[0]
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -84,5 +97,4 @@ func batchDeleteItem[V ItemType](ctx context.Context, db *dynamodb.Client, expr 
 	}
 
 	return nil
-
 }

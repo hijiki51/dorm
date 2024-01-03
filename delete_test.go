@@ -169,8 +169,8 @@ func testtestItemBatchDeleteItem(t *testing.T) {
 					expr, err := expression.NewBuilder().WithProjection(proj).Build()
 					assert.NoError(t, err)
 					got, err := BatchGetItems[testItem](args.ctx, db, args.keys, expr)
-					assert.Error(t, err)
-					assert.Nil(t, got)
+					assert.NoError(t, err)
+					assert.Len(t, got, 0)
 				},
 			},
 			opts: []cmp.Option{

@@ -11,16 +11,10 @@ type ItemType interface {
 	TableName() string
 }
 
-func checkEmptyResp(m map[string]types.AttributeValue) error {
-	if len(m) == 0 {
-		return ErrItemNotFound
-	}
-	return nil
+func checkEmptyResp(m map[string]types.AttributeValue) bool {
+	return len(m) == 0
 }
 
-func checkEmptyRespList(m []map[string]types.AttributeValue) error {
-	if len(m) == 0 {
-		return ErrItemNotFound
-	}
-	return nil
+func checkEmptyRespList(m []map[string]types.AttributeValue) bool {
+	return len(m) == 0
 }

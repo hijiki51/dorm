@@ -11,6 +11,12 @@ import (
 
 const maxBatchPutItemSize = 25
 
+type BatchPutItemOptions struct {
+	Concurrency int
+}
+
+type BatchPutOptionFunc func(*BatchPutItemOptions)
+
 // PutItem adds an item if it doesn't exist, or replaces it if it does.
 //
 // Be careful, as it will overwrite with zero values if set.
@@ -51,16 +57,22 @@ func PutItem[V ItemType](ctx context.Context, db *dynamodb.Client, item V, expr 
 // Also, it can perform a mix of deletion and creation, but here it is restricted to a single operation.
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.BatchWriteItem
 // https://docs.aws.amazon.com/en_us/amazondynamodb/latest/APIReference/API_BatchWriteItem.html
-func BatchPutItem[V ItemType](ctx context.Context, db *dynamodb.Client, items []V) error {
+func BatchPutItem[V ItemType](ctx context.Context, db *dynamodb.Client, items []V, opts ...BatchPutOptionFunc) error {
+
+	o := BatchPutItemOptions{}
+
+	for _, f := range opts {
+		f(&o)
+	}
 
 	if len(items) == 0 {
 		return nil
 	}
 	// The number of operations that can be performed in a single batch is up to 25
-	errs := splitThread(ctx, db, NopExpression, maxBatchPutItemSize, batchPutItem[V], items)
+	err := splitThread(ctx, db, NopExpression, maxBatchPutItemSize, o.Concurrency, batchPutItem[V], items)
 
-	if len(errs) > 0 {
-		return errs[0]
+	if err != nil {
+		return err
 	}
 
 	return nil
