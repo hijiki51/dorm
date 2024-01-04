@@ -29,13 +29,73 @@ type ScanOptions struct {
 	Limit *int32
 }
 
+// BatchGetItemOptions BatchGetItem options for BatchGetItem function
 type BatchGetItemOptions struct {
 	Concurrency int
 }
 
+// ScanOptionFunc Scan option function
 type ScanOptionFunc func(*ScanOptions)
+// QueryOptionFunc Query option function
 type QueryOptionFunc func(*QueryOptions)
+// BatchGetItemOptionFunc BatchGetItem option function
 type BatchGetItemOptionFunc func(*BatchGetItemOptions)
+
+// WithIndexName sets the IndexName for QueryOptions.
+func WithIndexName(name string) QueryOptionFunc {
+    return func(opts *QueryOptions) {
+        opts.IndexName = &name
+    }
+}
+
+// WithExclusiveStartKey sets the ExclusiveStartKey for QueryOptions.
+func WithExclusiveStartKey(key map[string]types.AttributeValue) QueryOptionFunc {
+    return func(opts *QueryOptions) {
+        opts.ExclusiveStartKey = key
+    }
+}
+
+// WithLimit sets the Limit for QueryOptions.
+func WithLimit(limit int32) QueryOptionFunc {
+    return func(opts *QueryOptions) {
+        opts.Limit = &limit
+    }
+}
+
+// WithReverse sets the Reverse flag for QueryOptions.
+func WithReverse(reverse bool) QueryOptionFunc {
+    return func(opts *QueryOptions) {
+        opts.Reverse = reverse
+    }
+}
+
+// WithScanIndexName sets the IndexName for ScanOptions.
+func WithScanIndexName(name string) ScanOptionFunc {
+    return func(opts *ScanOptions) {
+        opts.IndexName = &name
+    }
+}
+
+// WithScanExclusiveStartKey sets the ExclusiveStartKey for ScanOptions.
+func WithScanExclusiveStartKey(key map[string]types.AttributeValue) ScanOptionFunc {
+    return func(opts *ScanOptions) {
+        opts.ExclusiveStartKey = key
+    }
+}
+
+// WithScanLimit sets the Limit for ScanOptions.
+func WithScanLimit(limit int32) ScanOptionFunc {
+    return func(opts *ScanOptions) {
+        opts.Limit = &limit
+    }
+}
+
+// WithBatchGetConcurrency sets the concurrency for BatchGetItemOptions.
+func WithBatchGetConcurrency(concurrency int) BatchGetItemOptionFunc {
+	return func(opts *BatchGetItemOptions) {
+		opts.Concurrency = concurrency
+	}
+}
 
 // GetItem retrieves the specified item.
 //
