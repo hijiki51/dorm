@@ -11,11 +11,20 @@ import (
 
 const maxBatchDeleteSize = 25
 
+// BatchDeleteItemOptions BatchDeleteItem options for BatchDeleteItem function
 type BatchDeleteItemOptions struct {
 	Concurrency int
 }
 
+// BatchDeleteOptionFunc BatchDeleteItem option function
 type BatchDeleteOptionFunc func(*BatchDeleteItemOptions)
+
+// WithBatchDeleteConcurrency sets the Concurrency for BatchDeleteItemOptions.
+func WithBatchDeleteConcurrency(concurrency int) BatchDeleteOptionFunc {
+	return func(opts *BatchDeleteItemOptions) {
+		opts.Concurrency = concurrency
+	}
+}
 
 // DeleteItem deletes an item.
 // https://pkg.go.dev/github.com/aws/aws-sdk-go-v2/service/dynamodb#Client.DeleteItem
