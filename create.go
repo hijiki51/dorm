@@ -11,11 +11,20 @@ import (
 
 const maxBatchPutItemSize = 25
 
+// BatchPutItemOptions BatchPutItem options for BatchPutItem function
 type BatchPutItemOptions struct {
 	Concurrency int
 }
 
+// BatchPutOptionFunc BatchPutItem option function
 type BatchPutOptionFunc func(*BatchPutItemOptions)
+
+// WithBatchPutConcurrency sets the Concurrency for BatchPutItemOptions.
+func WithBatchPutConcurrency(concurrency int) BatchPutOptionFunc {
+	return func(opts *BatchPutItemOptions) {
+		opts.Concurrency = concurrency
+	}
+}
 
 // PutItem adds an item if it doesn't exist, or replaces it if it does.
 //
