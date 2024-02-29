@@ -4,6 +4,7 @@ import (
 	"context"
 	"math"
 	"reflect"
+	"sync"
 
 	"golang.org/x/sync/errgroup"
 
@@ -140,6 +141,7 @@ func splitThreadWithReturnValue[V ItemType, ARG any](
 		eg.SetLimit(concurrency)
 	}
 	res := make([]V, 0, len(args))
+	var mu sync.Mutex
 
 	for i := 0; i < threadnum; i++ {
 		start := i * size
@@ -153,7 +155,9 @@ func splitThreadWithReturnValue[V ItemType, ARG any](
 			if err != nil {
 				return err
 			}
+			mu.Lock()
 			res = append(res, val...)
+			mu.Unlock()
 			return nil
 		})
 	}
